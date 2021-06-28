@@ -24,11 +24,9 @@
             <ColumnDefinition Width="5*" MinWidth="100"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <DockPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3">
-            <RadioButton x:Name="RadioNpcap"   Margin="5 0 0 0" VerticalContentAlignment="Center" Content="Npcap" GroupName="CapType"
+            <CheckBox Margin="5 0 0 0" VerticalContentAlignment="Center" Content="Npcap"
                          IsEnabled="{Binding IsInterfaceChangeAllowed}"
-                         IsChecked="{Binding UsingNpcap}"></RadioButton>
-            <RadioButton x:Name="RadioSockets" Margin="5 0 5 0" VerticalContentAlignment="Center" Content="Sockets" GroupName="CapType" 
-                         IsEnabled="{Binding IsInterfaceChangeAllowed}"></RadioButton>
+                         IsChecked="{Binding UsingNpcap, Mode=TwoWay}"></CheckBox>            
             <ComboBox Height="25" Width="175" Padding="10 0" Margin="5 0 0 0" VerticalContentAlignment="Center" ToolTip="Select IP address" 
                       SelectedItem="{Binding SelectedInterface, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                       ItemsSource="{Binding InterfaceList}"
