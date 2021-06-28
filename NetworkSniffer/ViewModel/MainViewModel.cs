@@ -395,19 +395,25 @@ namespace NetworkSniffer.ViewModel
 
             if (usingNpcap)
             {
-                var devices = CaptureDeviceList.Instance;
-
-                foreach (LibPcapLiveDevice device in CaptureDeviceList.Instance)
+                try
                 {
-                    if (device.Addresses.Count > 0 && device.MacAddress != null)
+                    foreach (LibPcapLiveDevice device in CaptureDeviceList.Instance)
                     {
-                        InterfaceList.Add(new IPNetworkInterface
+                        if (device.Addresses.Count > 0 && device.MacAddress != null)
                         {
-                            InterfaceAddress = device.MacAddress.ToString(),
-                            InterfaceName = device.Interface.FriendlyName,
-                            LiveDevice = device
-                        });
+                            InterfaceList.Add(new IPNetworkInterface
+                            {
+                                InterfaceAddress = device.MacAddress.ToString(),
+                                InterfaceName = device.Interface.FriendlyName,
+                                LiveDevice = device
+                            });
+                        }
                     }
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show("Please install the latest Npcap driver.", "Error");
+                    Environment.Exit(0);
                 }
             }
             else
