@@ -200,11 +200,7 @@
                         <DockPanel Visibility="{Binding VisibilityIPv6}">
                             <TextBlock Text="   Next Header: "></TextBlock>
                             <TextBlock Text="{Binding NextHeaderFormat}"></TextBlock>
-                        </DockPanel>
-                        <DockPanel Visibility="{Binding VisibilityHopByHop}">
-                            <TextBlock Text="          Hop by Hop - Next Header: "></TextBlock>
-                            <TextBlock Text="{Binding HopByHopHeader.NextHeaderFormat}"></TextBlock>
-                        </DockPanel>
+                        </DockPanel>                        
                         <DockPanel Visibility="{Binding VisibilityIPv6}">
                             <TextBlock Text="   Hop Limit: "></TextBlock>
                             <TextBlock Text="{Binding HopLimit}"></TextBlock>

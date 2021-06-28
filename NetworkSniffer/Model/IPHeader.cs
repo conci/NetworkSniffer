@@ -264,6 +264,23 @@ namespace NetworkSniffer.Model
 
         public byte HopLimit { get; set; }
 
+        public Visibility VisibilityIPv4
+        {
+            get
+            {
+                if (Version == 4) return Visibility.Visible;
+                else return Visibility.Collapsed;
+            }
+        }
+
+        public Visibility VisibilityIPv6
+        {
+            get
+            {
+                if (Version == 6) return Visibility.Visible;
+                else return Visibility.Collapsed;
+            }
+        }
         #endregion
     }
 }

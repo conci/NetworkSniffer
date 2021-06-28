@@ -834,6 +834,8 @@ namespace NetworkSniffer.ViewModel
         /// </summary>
         private void GetPacketHexAndCharData()
         {
+            if (SelectedPacket == null) return;
+
             int length = SelectedPacket.IPHeader[0].TotalLength;
 
             StringBuilder charStringBuilder = new StringBuilder();
