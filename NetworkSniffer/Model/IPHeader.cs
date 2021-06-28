@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Windows;
-using System.Windows.Data;
 
 namespace NetworkSniffer.Model
 {
@@ -41,7 +38,7 @@ namespace NetworkSniffer.Model
                 {
                     byte nextByte;
                     byte[] adrress = new byte[16];
-                    
+
                     //Next 4 bits 
                     Priority = (byte)(byteVersionAndHeaderLength << 4);
 
@@ -91,7 +88,7 @@ namespace NetworkSniffer.Model
                     adrress[13] = binaryReader.ReadByte();
                     adrress[14] = binaryReader.ReadByte();
                     adrress[15] = binaryReader.ReadByte();
-                    
+
                     DestinationIPAddress = new IPAddress(adrress);
 
                     //Tamanho total do Pacote
@@ -146,7 +143,7 @@ namespace NetworkSniffer.Model
                     DestinationIPAddress = new IPAddress((uint)(binaryReader.ReadInt32()));
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 MessageBox.Show(e.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
@@ -165,13 +162,13 @@ namespace NetworkSniffer.Model
         public byte InternetHeaderLength { get; set; }
 
         public byte TypeOfService { get; set; }
-        
+
         public ushort TotalLength { get; set; }
 
         public ushort Identification { get; set; }
-        
+
         public byte ByteFlags { get; set; }
-        
+
         public string Flags
         {
             get
@@ -195,7 +192,7 @@ namespace NetworkSniffer.Model
         public byte TimeToLive { get; set; }
 
         public byte TransportProtocol { get; set; }
-        
+
         public string TransportProtocolName
         {
             get
@@ -216,7 +213,7 @@ namespace NetworkSniffer.Model
                         return "Unknown";
                 }
             }
-        } 
+        }
 
         public short HeaderChecksum { get; set; }
 
@@ -266,7 +263,7 @@ namespace NetworkSniffer.Model
         }
 
         public byte HopLimit { get; set; }
-             
+
         #endregion
     }
 }

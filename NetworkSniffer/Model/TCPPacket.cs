@@ -29,11 +29,11 @@ namespace NetworkSniffer.Model
             try
             {
                 MemoryStream memoryStream = new MemoryStream(byteBuffer, 0, length);
-                
+
                 BinaryReader binaryReader = new BinaryReader(memoryStream);
-                
+
                 Array.Copy(byteBuffer, byteTCPHeader, TCPHeaderSize);
-                
+
                 byteTCPMessage = new byte[length - TCPHeaderSize];
                 Array.Copy(byteBuffer, TCPHeaderSize, byteTCPMessage, 0, length - TCPHeaderSize);
 
@@ -89,7 +89,7 @@ namespace NetworkSniffer.Model
         private void PopulatePacketContents()
         {
             TCPHeader.Add(new TCPHeader(byteTCPHeader, (int)TCPHeaderSize));
-            
+
             if (TCPHeader[0].DestinationPort == 53)
             {
                 DNSPacket.Add(new DNSPacket(byteTCPMessage, byteTCPMessage.Length));

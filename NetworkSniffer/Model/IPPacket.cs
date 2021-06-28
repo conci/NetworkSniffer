@@ -30,11 +30,11 @@ namespace NetworkSniffer.Model
             {
                 #region Buffer parsing
                 MemoryStream memoryStream = new MemoryStream(byteBuffer, 0, length);
-                
+
                 BinaryReader binaryReader = new BinaryReader(memoryStream);
 
                 // First eight bytes are IP version and header length
-                byte byteVersionAndHeaderLength = binaryReader.ReadByte();             
+                byte byteVersionAndHeaderLength = binaryReader.ReadByte();
 
                 // Shift 4 bits to the right to get version number
                 byte version = (byte)(byteVersionAndHeaderLength >> 4);
@@ -70,7 +70,7 @@ namespace NetworkSniffer.Model
                 UDPPacket = new List<UDPPacket>();
                 ICMPPacket = new List<ICMPPacket>();
                 IGMPPacket = new List<IGMPPacket>();
-                
+
                 PopulatePacketContents(byteHeaderLength);
 
                 ReceiveTime = DateTime.Now.ToString("HH:mm:ss");
@@ -173,11 +173,11 @@ namespace NetworkSniffer.Model
             {
                 ICMPPacket.Add(new ICMPPacket(byteIPMessage, byteIPMessage.Length));
             }
-            else if(IPHeader[0].TransportProtocol == 2)
+            else if (IPHeader[0].TransportProtocol == 2)
             {
                 IGMPPacket.Add(new IGMPPacket(byteIPMessage, byteIPMessage.Length));
             }
-            else if(IPHeader[0].TransportProtocol == 6)
+            else if (IPHeader[0].TransportProtocol == 6)
             {
                 TCPPacket.Add(new TCPPacket(byteIPMessage, byteIPMessage.Length));
             }

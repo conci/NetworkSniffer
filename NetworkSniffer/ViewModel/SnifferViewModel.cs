@@ -3,6 +3,6 @@
 namespace NetworkSniffer.ViewModel
 {
     public class SnifferViewModel : ViewModelBase
-    {        
+    {
     }
 }

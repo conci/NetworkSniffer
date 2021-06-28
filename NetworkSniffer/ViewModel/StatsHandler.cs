@@ -40,7 +40,7 @@ namespace NetworkSniffer.ViewModel
         public static int PacketsTotal { get; set; }
 
         public static int BytesTotal { get; set; }
-        
+
         public static Timer Timer = new Timer(1);
 
         public static Stopwatch StopWatch = new Stopwatch();
@@ -72,13 +72,13 @@ namespace NetworkSniffer.ViewModel
             PacketsTotal = 0;
             BytesTotal = 0;
 
-            foreach(PacketLengthCategory plc in PacketLengthStats)
+            foreach (PacketLengthCategory plc in PacketLengthStats)
             {
                 plc.Count = 0;
                 plc.Percentage = 0;
             }
 
-            foreach(TransportProtocolCategory tpc in TransportProtocolStats)
+            foreach (TransportProtocolCategory tpc in TransportProtocolStats)
             {
                 tpc.Count = 0;
                 tpc.Percentage = 0;

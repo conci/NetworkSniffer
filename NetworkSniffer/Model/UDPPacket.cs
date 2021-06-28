@@ -29,11 +29,11 @@ namespace NetworkSniffer.Model
             try
             {
                 MemoryStream memoryStream = new MemoryStream(byteBuffer, 0, length);
-                
+
                 BinaryReader binaryReader = new BinaryReader(memoryStream);
-                
+
                 Array.Copy(byteBuffer, byteUDPHeader, UDPHeaderSize);
-                
+
                 byteUDPMessage = new byte[length - UDPHeaderSize];
                 Array.Copy(byteBuffer, UDPHeaderSize, byteUDPMessage, 0, length - UDPHeaderSize);
 

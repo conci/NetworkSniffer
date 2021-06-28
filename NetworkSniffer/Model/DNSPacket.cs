@@ -29,11 +29,11 @@ namespace NetworkSniffer.Model
             try
             {
                 MemoryStream memoryStream = new MemoryStream(byteBuffer, 0, length);
-                
+
                 BinaryReader binaryReader = new BinaryReader(memoryStream);
-                
+
                 Array.Copy(byteBuffer, byteDNSHeader, DNSHeaderSize);
-                
+
                 byteDNSMessage = new byte[length - DNSHeaderSize];
                 Array.Copy(byteBuffer, DNSHeaderSize, byteDNSMessage, 0, length - DNSHeaderSize);
 

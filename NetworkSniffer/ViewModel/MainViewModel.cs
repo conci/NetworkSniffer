@@ -6,7 +6,6 @@ using SharpPcap.LibPcap;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -104,7 +103,7 @@ namespace NetworkSniffer.ViewModel
                 RaisePropertyChanged("CurrentViewModel");
             }
         }
-                
+
         private ObservableCollection<IPPacket> packetList;
         /// <summary>
         /// Stores all captured packets
@@ -122,7 +121,7 @@ namespace NetworkSniffer.ViewModel
                 BindingOperations.EnableCollectionSynchronization(packetList, packetListLock);
             }
         }
-        
+
         private ObservableCollection<IPPacket> filteredPacketList;
         /// <summary>
         /// Stores packets from PacketList filtered according to filter conditions
@@ -140,7 +139,7 @@ namespace NetworkSniffer.ViewModel
                 BindingOperations.EnableCollectionSynchronization(filteredPacketList, packetListLock);
             }
         }
-        
+
         private IPPacket selectedPacket;
         /// <summary>
         /// Packet currently selected in FilteredPacketList
@@ -443,7 +442,7 @@ namespace NetworkSniffer.ViewModel
             }
 
             RaisePropertyChanged("SelectedInterface");
-        }        
+        }
 
         /// <summary>
         /// Adds newly received packet to packet lists
@@ -544,7 +543,7 @@ namespace NetworkSniffer.ViewModel
                     break;
                 }
                 else if (newPacket.UDPPacket.Count > 0 &&
-                         port == newPacket.UDPPacket[0].UDPHeader[0].SourcePort.ToString()) 
+                         port == newPacket.UDPPacket[0].UDPHeader[0].SourcePort.ToString())
                 {
                     SrcPortRule = true;
                     break;
@@ -561,7 +560,7 @@ namespace NetworkSniffer.ViewModel
                     break;
                 }
                 else if (newPacket.UDPPacket.Count > 0 &&
-                         port == newPacket.UDPPacket[0].UDPHeader[0].DestinationPort.ToString()) 
+                         port == newPacket.UDPPacket[0].UDPHeader[0].DestinationPort.ToString())
                 {
                     DestPortRule = true;
                     break;
@@ -573,7 +572,7 @@ namespace NetworkSniffer.ViewModel
             {
                 LowerLengthRule = false;
                 ushort lowerLenght = ushort.Parse(LowerLength);
-                
+
                 if (lowerLenght > packetLength)
                 {
                     LowerLengthRule = true;
@@ -585,7 +584,7 @@ namespace NetworkSniffer.ViewModel
             {
                 HigherLengthRule = false;
                 ushort higherLenght = ushort.Parse(HigherLength);
-                
+
                 if (higherLenght < packetLength)
                 {
                     HigherLengthRule = true;
@@ -599,7 +598,7 @@ namespace NetworkSniffer.ViewModel
                 LowerLengthRule == true && HigherLengthRule == true)
             {
                 FilteredPacketList.Add(newPacket);
-            }            
+            }
         }
 
         /// <summary>
@@ -634,14 +633,14 @@ namespace NetworkSniffer.ViewModel
                 {
                     return true;
                 }
-                else if (protocol.Equals("DNS") && 
+                else if (protocol.Equals("DNS") &&
                     newPacket.UDPPacket.Count > 0 &&
                     (newPacket.UDPPacket[0].UDPHeader[0].DestinationPort == 53 ||
                     newPacket.UDPPacket[0].UDPHeader[0].SourcePort == 53))
                 {
                     return true;
                 }
-                else if (protocol.Equals("HTTPS") && 
+                else if (protocol.Equals("HTTPS") &&
                     ((newPacket.UDPPacket.Count > 0 &&
                      newPacket.UDPPacket[0].ApplicationProtocolType.PortName.Equals(protocol)) ||
                      (newPacket.TCPPacket.Count > 0 &&
@@ -649,7 +648,7 @@ namespace NetworkSniffer.ViewModel
                 {
                     return true;
                 }
-                else if (protocol.Equals("HTTP") && 
+                else if (protocol.Equals("HTTP") &&
                     ((newPacket.UDPPacket.Count > 0 &&
                      newPacket.UDPPacket[0].ApplicationProtocolType.PortName.Equals(protocol)) ||
                      (newPacket.TCPPacket.Count > 0 &&
@@ -657,7 +656,7 @@ namespace NetworkSniffer.ViewModel
                 {
                     return true;
                 }
-                else if (protocol.Equals("SSH") && 
+                else if (protocol.Equals("SSH") &&
                     ((newPacket.UDPPacket.Count > 0 &&
                      newPacket.UDPPacket[0].ApplicationProtocolType.PortName.Equals(protocol)) ||
                      (newPacket.TCPPacket.Count > 0 &&
@@ -665,7 +664,7 @@ namespace NetworkSniffer.ViewModel
                 {
                     return true;
                 }
-                else if (protocol.Equals("IRC") && 
+                else if (protocol.Equals("IRC") &&
                     ((newPacket.UDPPacket.Count > 0 &&
                      newPacket.UDPPacket[0].ApplicationProtocolType.PortName.Equals(protocol)) ||
                      (newPacket.TCPPacket.Count > 0 &&
@@ -792,7 +791,7 @@ namespace NetworkSniffer.ViewModel
 
             return LengthIPList;
         }
-        
+
         /// <summary>
         /// Filters all received packets from PacketList
         /// </summary>
@@ -852,7 +851,7 @@ namespace NetworkSniffer.ViewModel
                 else
                     charStringBuilder.Append(".");
             }
-            
+
             for (int i = 0; i < length; i++)
             {
                 hexStringBuilder.Append(packetData[i].ToString("x2") + " ");
@@ -979,7 +978,7 @@ namespace NetworkSniffer.ViewModel
 
         #region Commands
         public ICommand OpenAnalyzer { get; private set; }
-        
+
         private void OpenAnalyzerExecute()
         {
             CurrentViewModel = analyzerViewModel;
@@ -1109,7 +1108,7 @@ namespace NetworkSniffer.ViewModel
             ClearSelectedPacketData();
             IsFilterEnabled = false;
 
-            if(string.IsNullOrEmpty(filter))
+            if (string.IsNullOrEmpty(filter))
             {
                 IsResetEnabled = false;
             }
