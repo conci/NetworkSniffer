@@ -69,7 +69,7 @@ namespace NetworkSniffer.Model
                 {
                     newPacketEventHandler(newPacket);
                 }
-                
+
                 socket.BeginReceive(byteBufferData, 0, byteBufferData.Length,
                                     SocketFlags.None, new AsyncCallback(this.ReceiveData), null);
             }

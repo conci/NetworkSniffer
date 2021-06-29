@@ -47,7 +47,7 @@ namespace NetworkSniffer.Model
         /// Lowest and highest value as a string
         /// </summary>
         public string Range { get; set; }
-                
+
         private int count;
         /// <summary>
         /// Number of packets with length in specified range
@@ -64,7 +64,7 @@ namespace NetworkSniffer.Model
                 NotifyPropertyChanged("Count");
             }
         }
-        
+
         private double percentage;
         /// <summary>
         /// Percentage of packets with length in specified range

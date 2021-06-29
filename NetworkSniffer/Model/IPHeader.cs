@@ -34,49 +34,116 @@ namespace NetworkSniffer.Model
                 // Shift 4 bits to the right to get version number
                 Version = (byte)(byteVersionAndHeaderLength >> 4);
 
-                // Shift 4 bits to the left to remove first 4 bits (version bits) than shift back to the right
-                InternetHeaderLength = (byte)(byteVersionAndHeaderLength << 4);
-                InternetHeaderLength >>= 4;
-                // Multiply by 4 to get actual length in bytes
-                InternetHeaderLength *= 4;
+                if (Version == 6)
+                {
+                    byte nextByte;
+                    byte[] adrress = new byte[16];
 
-                // Next byte is TOS
-                TypeOfService = binaryReader.ReadByte();
+                    //Next 4 bits 
+                    Priority = (byte)(byteVersionAndHeaderLength << 4);
 
-                // Next two bytes hold total length of the packet
-                TotalLength = (ushort)IPAddress.NetworkToHostOrder(binaryReader.ReadInt16());
+                    //TrafficClass e FlowLabel
+                    nextByte = binaryReader.ReadByte();
+                    nextByte = binaryReader.ReadByte();
+                    nextByte = binaryReader.ReadByte();
 
-                // Next two bytes are identification number
-                Identification = (ushort)IPAddress.NetworkToHostOrder(binaryReader.ReadInt16());
+                    PayloadLength = (ushort)IPAddress.NetworkToHostOrder(binaryReader.ReadInt16());
+                    NextHeader = binaryReader.ReadByte();
+                    HopLimit = binaryReader.ReadByte();
 
-                // Next two bytes hold flags (first three bits) and fragment offset (remaining bits)
-                uiFlagsAndOffset = (ushort)IPAddress.NetworkToHostOrder(binaryReader.ReadInt16());
+                    // Next 16 bytes are source address
+                    adrress[0] = binaryReader.ReadByte();
+                    adrress[1] = binaryReader.ReadByte();
+                    adrress[2] = binaryReader.ReadByte();
+                    adrress[3] = binaryReader.ReadByte();
+                    adrress[4] = binaryReader.ReadByte();
+                    adrress[5] = binaryReader.ReadByte();
+                    adrress[6] = binaryReader.ReadByte();
+                    adrress[7] = binaryReader.ReadByte();
+                    adrress[8] = binaryReader.ReadByte();
+                    adrress[9] = binaryReader.ReadByte();
+                    adrress[10] = binaryReader.ReadByte();
+                    adrress[11] = binaryReader.ReadByte();
+                    adrress[12] = binaryReader.ReadByte();
+                    adrress[13] = binaryReader.ReadByte();
+                    adrress[14] = binaryReader.ReadByte();
+                    adrress[15] = binaryReader.ReadByte();
 
-                // Shift right to get the flags value
-                ByteFlags = (byte)(uiFlagsAndOffset >> 13);
+                    SourceIPAddress = new IPAddress(adrress);
 
-                // Shift to the left and back to the right to get the offset
-                FragmentOffset = (ushort)(uiFlagsAndOffset << 3);
-                FragmentOffset >>= 3;
-                // Get the actual offset in bytes
-                FragmentOffset *= 8;
+                    //Last 16 bytes are destination address
+                    adrress[0] = binaryReader.ReadByte();
+                    adrress[1] = binaryReader.ReadByte();
+                    adrress[2] = binaryReader.ReadByte();
+                    adrress[3] = binaryReader.ReadByte();
+                    adrress[4] = binaryReader.ReadByte();
+                    adrress[5] = binaryReader.ReadByte();
+                    adrress[6] = binaryReader.ReadByte();
+                    adrress[7] = binaryReader.ReadByte();
+                    adrress[8] = binaryReader.ReadByte();
+                    adrress[9] = binaryReader.ReadByte();
+                    adrress[10] = binaryReader.ReadByte();
+                    adrress[11] = binaryReader.ReadByte();
+                    adrress[12] = binaryReader.ReadByte();
+                    adrress[13] = binaryReader.ReadByte();
+                    adrress[14] = binaryReader.ReadByte();
+                    adrress[15] = binaryReader.ReadByte();
 
-                // Next byte is TTL
-                TimeToLive = binaryReader.ReadByte();
+                    DestinationIPAddress = new IPAddress(adrress);
 
-                // Next byte represents transport layer protocol
-                TransportProtocol = binaryReader.ReadByte();
+                    //Tamanho total do Pacote
+                    TotalLength = PayloadLength;
+                    TotalLength += 40; //Do cabeçalho
 
-                // Next two bytes are checksum
-                HeaderChecksum = IPAddress.NetworkToHostOrder(binaryReader.ReadInt16());
-                
-                // Next four bytes are source address
-                SourceIPAddress = new IPAddress((uint)(binaryReader.ReadInt32()));
+                    //Protocolo
+                    TransportProtocol = NextHeader;
+                }
+                else
+                {
+                    // Shift 4 bits to the left to remove first 4 bits (version bits) than shift back to the right
+                    InternetHeaderLength = (byte)(byteVersionAndHeaderLength << 4);
+                    InternetHeaderLength >>= 4;
+                    // Multiply by 4 to get actual length in bytes
+                    InternetHeaderLength *= 4;
 
-                // Last four bytes are destination address
-                DestinationIPAddress = new IPAddress((uint)(binaryReader.ReadInt32()));
+                    // Next byte is TOS
+                    TypeOfService = binaryReader.ReadByte();
+
+                    // Next two bytes hold total length of the packet
+                    TotalLength = (ushort)IPAddress.NetworkToHostOrder(binaryReader.ReadInt16());
+
+                    // Next two bytes are identification number
+                    Identification = (ushort)IPAddress.NetworkToHostOrder(binaryReader.ReadInt16());
+
+                    // Next two bytes hold flags (first three bits) and fragment offset (remaining bits)
+                    uiFlagsAndOffset = (ushort)IPAddress.NetworkToHostOrder(binaryReader.ReadInt16());
+
+                    // Shift right to get the flags value
+                    ByteFlags = (byte)(uiFlagsAndOffset >> 13);
+
+                    // Shift to the left and back to the right to get the offset
+                    FragmentOffset = (ushort)(uiFlagsAndOffset << 3);
+                    FragmentOffset >>= 3;
+                    // Get the actual offset in bytes
+                    FragmentOffset *= 8;
+
+                    // Next byte is TTL
+                    TimeToLive = binaryReader.ReadByte();
+
+                    // Next byte represents transport layer protocol
+                    TransportProtocol = binaryReader.ReadByte();
+
+                    // Next two bytes are checksum
+                    HeaderChecksum = IPAddress.NetworkToHostOrder(binaryReader.ReadInt16());
+
+                    // Next four bytes are source address
+                    SourceIPAddress = new IPAddress((uint)(binaryReader.ReadInt32()));
+
+                    // Last four bytes are destination address
+                    DestinationIPAddress = new IPAddress((uint)(binaryReader.ReadInt32()));
+                }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 MessageBox.Show(e.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
@@ -84,18 +151,24 @@ namespace NetworkSniffer.Model
         #endregion
 
         #region Properties
+
         public byte Version { get; set; }
 
+        public IPAddress SourceIPAddress { get; set; }
+
+        public IPAddress DestinationIPAddress { get; set; }
+
+        //IPv4
         public byte InternetHeaderLength { get; set; }
 
         public byte TypeOfService { get; set; }
-        
+
         public ushort TotalLength { get; set; }
 
         public ushort Identification { get; set; }
-        
+
         public byte ByteFlags { get; set; }
-        
+
         public string Flags
         {
             get
@@ -119,7 +192,7 @@ namespace NetworkSniffer.Model
         public byte TimeToLive { get; set; }
 
         public byte TransportProtocol { get; set; }
-        
+
         public string TransportProtocolName
         {
             get
@@ -134,6 +207,8 @@ namespace NetworkSniffer.Model
                         return "TCP";
                     case 17:
                         return "UDP";
+                    case 58:
+                        return "ICMPv6";
                     default:
                         return "Unknown";
                 }
@@ -142,9 +217,70 @@ namespace NetworkSniffer.Model
 
         public short HeaderChecksum { get; set; }
 
-        public IPAddress SourceIPAddress { get; set; }
+        //IPv6
+        public byte Priority { get; set; }
 
-        public IPAddress DestinationIPAddress { get; set; }
+        public byte TrafficClass { get; set; }
+
+        public int FlowLabel { get; set; }
+
+        public ushort PayloadLength { get; set; }
+
+        public byte NextHeader { get; set; }
+
+        public string NextHeaderFormat
+        {
+            get
+            {
+                switch (NextHeader)
+                {
+                    case 0:
+                        return "Hop-by-Hop (" + NextHeader + ")";
+                    case 1:
+                        return "ICMP (" + NextHeader + ")";
+                    case 2:
+                        return "IGMP (" + NextHeader + ")";
+                    case 6:
+                        return "TCP (" + NextHeader + ")";
+                    case 17:
+                        return "UDP (" + NextHeader + ")";
+                    case 43:
+                        return "Routing (" + NextHeader + ")";
+                    case 44:
+                        return "Fragmentation (" + NextHeader + ")";
+                    case 50:
+                        return "Encapsulation Security Payload (" + NextHeader + ")";
+                    case 51:
+                        return "Authentication (" + NextHeader + ")";
+                    case 58:
+                        return "ICMPv6 (" + NextHeader + ")";
+                    case 60:
+                        return "Destination Options (" + NextHeader + ")";
+                    default:
+                        return "Unknown";
+                }
+            }
+        }
+
+        public byte HopLimit { get; set; }
+
+        public Visibility VisibilityIPv4
+        {
+            get
+            {
+                if (Version == 4) return Visibility.Visible;
+                else return Visibility.Collapsed;
+            }
+        }
+
+        public Visibility VisibilityIPv6
+        {
+            get
+            {
+                if (Version == 6) return Visibility.Visible;
+                else return Visibility.Collapsed;
+            }
+        }
         #endregion
     }
 }

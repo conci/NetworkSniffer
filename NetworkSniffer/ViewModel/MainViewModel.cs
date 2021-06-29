@@ -1,6 +1,8 @@
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using NetworkSniffer.Model;
+using SharpPcap;
+using SharpPcap.LibPcap;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -26,6 +28,7 @@ namespace NetworkSniffer.ViewModel
         private HelpViewModel helpViewModel = new HelpViewModel();
 
         private InterfaceMonitor monitor;
+        private InterfaceMonitorNpcap monitorNpcap;
         private string filter;
         private readonly object packetListLock = new object();
 
@@ -100,7 +103,7 @@ namespace NetworkSniffer.ViewModel
                 RaisePropertyChanged("CurrentViewModel");
             }
         }
-                
+
         private ObservableCollection<IPPacket> packetList;
         /// <summary>
         /// Stores all captured packets
@@ -118,7 +121,7 @@ namespace NetworkSniffer.ViewModel
                 BindingOperations.EnableCollectionSynchronization(packetList, packetListLock);
             }
         }
-        
+
         private ObservableCollection<IPPacket> filteredPacketList;
         /// <summary>
         /// Stores packets from PacketList filtered according to filter conditions
@@ -136,7 +139,7 @@ namespace NetworkSniffer.ViewModel
                 BindingOperations.EnableCollectionSynchronization(filteredPacketList, packetListLock);
             }
         }
-        
+
         private IPPacket selectedPacket;
         /// <summary>
         /// Packet currently selected in FilteredPacketList
@@ -366,6 +369,20 @@ namespace NetworkSniffer.ViewModel
                 RaisePropertyChanged("FilterValidity");
             }
         }
+
+        private bool usingNpcap = true;
+        public bool UsingNpcap
+        {
+            get
+            {
+                return usingNpcap;
+            }
+            set
+            {
+                usingNpcap = value;
+                GetInterfaces();
+            }
+        }
         #endregion
 
         #region Methods
@@ -374,23 +391,52 @@ namespace NetworkSniffer.ViewModel
         /// </summary>
         private void GetInterfaces()
         {
-            foreach (NetworkInterface networkInterface in NetworkInterface.GetAllNetworkInterfaces())
+            InterfaceList.Clear();
+
+            if (usingNpcap)
             {
-                if (networkInterface.OperationalStatus == OperationalStatus.Up)
+                try
                 {
-                    foreach (UnicastIPAddressInformation ip in networkInterface.GetIPProperties().UnicastAddresses)
+                    foreach (LibPcapLiveDevice device in CaptureDeviceList.Instance)
                     {
-                        if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
+                        if (device.Addresses.Count > 0 && device.MacAddress != null)
                         {
                             InterfaceList.Add(new IPNetworkInterface
                             {
-                                InterfaceAddress = ip.Address.ToString(),
-                                InterfaceName = networkInterface.Name
+                                InterfaceAddress = device.MacAddress.ToString(),
+                                InterfaceName = device.Interface.FriendlyName,
+                                LiveDevice = device
                             });
                         }
                     }
                 }
+                catch (Exception)
+                {
+                    MessageBox.Show("Please install the latest Npcap driver.", "Error");
+                    Environment.Exit(0);
+                }
             }
+            else
+            {
+                foreach (NetworkInterface networkInterface in NetworkInterface.GetAllNetworkInterfaces())
+                {
+                    if (networkInterface.OperationalStatus == OperationalStatus.Up)
+                    {
+                        foreach (UnicastIPAddressInformation ip in networkInterface.GetIPProperties().UnicastAddresses)
+                        {
+                            if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
+                            {
+                                InterfaceList.Add(new IPNetworkInterface
+                                {
+                                    InterfaceAddress = ip.Address.ToString(),
+                                    InterfaceName = networkInterface.Name
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
 
             if (InterfaceList.Count > 0)
             {
@@ -402,7 +448,7 @@ namespace NetworkSniffer.ViewModel
             }
 
             RaisePropertyChanged("SelectedInterface");
-        }        
+        }
 
         /// <summary>
         /// Adds newly received packet to packet lists
@@ -476,7 +522,7 @@ namespace NetworkSniffer.ViewModel
             foreach (string ip in srcIPList)
             {
                 SrcIPRule = false;
-                if (ip == newPacket.IPHeader[0].SourceIPAddress.ToString())
+                if (ip.ToUpper() == newPacket.IPHeader[0].SourceIPAddress.ToString().ToUpper())
                 {
                     SrcIPRule = true;
                     break;
@@ -486,7 +532,7 @@ namespace NetworkSniffer.ViewModel
             foreach (string ip in destIPList)
             {
                 DstIPRule = false;
-                if (ip == newPacket.IPHeader[0].DestinationIPAddress.ToString())
+                if (ip.ToUpper() == newPacket.IPHeader[0].DestinationIPAddress.ToString().ToUpper())
                 {
                     DstIPRule = true;
                     break;
@@ -503,7 +549,7 @@ namespace NetworkSniffer.ViewModel
                     break;
                 }
                 else if (newPacket.UDPPacket.Count > 0 &&
-                         port == newPacket.UDPPacket[0].UDPHeader[0].SourcePort.ToString()) 
+                         port == newPacket.UDPPacket[0].UDPHeader[0].SourcePort.ToString())
                 {
                     SrcPortRule = true;
                     break;
@@ -520,7 +566,7 @@ namespace NetworkSniffer.ViewModel
                     break;
                 }
                 else if (newPacket.UDPPacket.Count > 0 &&
-                         port == newPacket.UDPPacket[0].UDPHeader[0].DestinationPort.ToString()) 
+                         port == newPacket.UDPPacket[0].UDPHeader[0].DestinationPort.ToString())
                 {
                     DestPortRule = true;
                     break;
@@ -532,7 +578,7 @@ namespace NetworkSniffer.ViewModel
             {
                 LowerLengthRule = false;
                 ushort lowerLenght = ushort.Parse(LowerLength);
-                
+
                 if (lowerLenght > packetLength)
                 {
                     LowerLengthRule = true;
@@ -544,7 +590,7 @@ namespace NetworkSniffer.ViewModel
             {
                 HigherLengthRule = false;
                 ushort higherLenght = ushort.Parse(HigherLength);
-                
+
                 if (higherLenght < packetLength)
                 {
                     HigherLengthRule = true;
@@ -558,7 +604,7 @@ namespace NetworkSniffer.ViewModel
                 LowerLengthRule == true && HigherLengthRule == true)
             {
                 FilteredPacketList.Add(newPacket);
-            }            
+            }
         }
 
         /// <summary>
@@ -588,14 +634,19 @@ namespace NetworkSniffer.ViewModel
                 {
                     return true;
                 }
-                else if (protocol.Equals("DNS") && 
+                else if (protocol.Equals("ICMPV6") &&
+                    newPacket.IPHeader[0].TransportProtocolName.ToUpper() == "ICMPV6")
+                {
+                    return true;
+                }
+                else if (protocol.Equals("DNS") &&
                     newPacket.UDPPacket.Count > 0 &&
                     (newPacket.UDPPacket[0].UDPHeader[0].DestinationPort == 53 ||
                     newPacket.UDPPacket[0].UDPHeader[0].SourcePort == 53))
                 {
                     return true;
                 }
-                else if (protocol.Equals("HTTPS") && 
+                else if (protocol.Equals("HTTPS") &&
                     ((newPacket.UDPPacket.Count > 0 &&
                      newPacket.UDPPacket[0].ApplicationProtocolType.PortName.Equals(protocol)) ||
                      (newPacket.TCPPacket.Count > 0 &&
@@ -603,7 +654,7 @@ namespace NetworkSniffer.ViewModel
                 {
                     return true;
                 }
-                else if (protocol.Equals("HTTP") && 
+                else if (protocol.Equals("HTTP") &&
                     ((newPacket.UDPPacket.Count > 0 &&
                      newPacket.UDPPacket[0].ApplicationProtocolType.PortName.Equals(protocol)) ||
                      (newPacket.TCPPacket.Count > 0 &&
@@ -611,7 +662,7 @@ namespace NetworkSniffer.ViewModel
                 {
                     return true;
                 }
-                else if (protocol.Equals("SSH") && 
+                else if (protocol.Equals("SSH") &&
                     ((newPacket.UDPPacket.Count > 0 &&
                      newPacket.UDPPacket[0].ApplicationProtocolType.PortName.Equals(protocol)) ||
                      (newPacket.TCPPacket.Count > 0 &&
@@ -619,7 +670,7 @@ namespace NetworkSniffer.ViewModel
                 {
                     return true;
                 }
-                else if (protocol.Equals("IRC") && 
+                else if (protocol.Equals("IRC") &&
                     ((newPacket.UDPPacket.Count > 0 &&
                      newPacket.UDPPacket[0].ApplicationProtocolType.PortName.Equals(protocol)) ||
                      (newPacket.TCPPacket.Count > 0 &&
@@ -641,13 +692,24 @@ namespace NetworkSniffer.ViewModel
         private List<string> ValidIPAddress(List<string> IPList, string isValid)
         {
             const string PatternIP = @"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$";
+            const string PatternIPv6 = @"\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\s*$";
             const string SrcPattern = @"^SRC=" + PatternIP;
             const string DstPattern = @"^DEST=" + PatternIP;
+            const string SrcPatternV6 = @"^SRC=" + PatternIPv6;
+            const string DstPatternV6 = @"^DEST=" + PatternIPv6;
 
-            if (Regex.Match(isValid, SrcPattern).Success ||
-                Regex.Match(isValid, DstPattern).Success)
+            if (Regex.Match(isValid, SrcPattern).Success || Regex.Match(isValid, DstPattern).Success)
             {
                 string ipString = Regex.Match(isValid, PatternIP).Value;
+                IPAddress ipAddress;
+                if (IPAddress.TryParse(ipString, out ipAddress))
+                {
+                    IPList.Add(ipString);
+                }
+            }
+            else if (Regex.Match(isValid, SrcPatternV6).Success || Regex.Match(isValid, DstPatternV6).Success)
+            {
+                string ipString = Regex.Match(isValid, PatternIPv6).Value;
                 IPAddress ipAddress;
                 if (IPAddress.TryParse(ipString, out ipAddress))
                 {
@@ -735,7 +797,7 @@ namespace NetworkSniffer.ViewModel
 
             return LengthIPList;
         }
-        
+
         /// <summary>
         /// Filters all received packets from PacketList
         /// </summary>
@@ -778,6 +840,8 @@ namespace NetworkSniffer.ViewModel
         /// </summary>
         private void GetPacketHexAndCharData()
         {
+            if (SelectedPacket == null) return;
+
             int length = SelectedPacket.IPHeader[0].TotalLength;
 
             StringBuilder charStringBuilder = new StringBuilder();
@@ -795,7 +859,7 @@ namespace NetworkSniffer.ViewModel
                 else
                     charStringBuilder.Append(".");
             }
-            
+
             for (int i = 0; i < length; i++)
             {
                 hexStringBuilder.Append(packetData[i].ToString("x2") + " ");
@@ -836,7 +900,7 @@ namespace NetworkSniffer.ViewModel
             List<string> filterList = new List<string>(filter.ToUpper().Split(' '));
 
             // A list of allowed supported protocols
-            string[] allowedProtocols = { "UDP", "TCP", "IGMP", "ICMP", "DNS",
+            string[] allowedProtocols = { "UDP", "TCP", "IGMP", "ICMP", "ICMPV6", "DNS",
                                           "HTTPS", "HTTP", "SSH", "IRC" };
 
             // Remove all substrings that are not in list of allowed filters
@@ -922,7 +986,7 @@ namespace NetworkSniffer.ViewModel
 
         #region Commands
         public ICommand OpenAnalyzer { get; private set; }
-        
+
         private void OpenAnalyzerExecute()
         {
             CurrentViewModel = analyzerViewModel;
@@ -958,22 +1022,30 @@ namespace NetworkSniffer.ViewModel
             {
                 try
                 {
-                    if (monitor == null)
+                    if (!usingNpcap && monitor == null)
                     {
                         monitor = new InterfaceMonitor(SelectedInterface.InterfaceAddress);
                         monitor.newPacketEventHandler += new InterfaceMonitor.NewPacketEventHandler(ReceiveNewPacket);
                         monitor.StartCapture();
-                        StatsHandler.Timer.Start();
-                        StatsHandler.StopWatch.Start();
-                        IsInterfaceChangeAllowed = false;
-                        IsStartEnabled = false;
-                        IsStopEnabled = true;
                     }
+
+                    if (usingNpcap && monitorNpcap == null)
+                    {
+                        monitorNpcap = new InterfaceMonitorNpcap(SelectedInterface.LiveDevice);
+                        monitorNpcap.newPacketEventHandler += new InterfaceMonitorNpcap.NewPacketEventHandler(ReceiveNewPacket);
+                        monitorNpcap.StartPcapture();
+                    }
+
+                    StatsHandler.Timer.Start();
+                    StatsHandler.StopWatch.Start();
+                    IsInterfaceChangeAllowed = false;
+                    IsStartEnabled = false;
+                    IsStopEnabled = true;
                 }
                 catch (Exception e)
                 {
                     MessageBox.Show(e.Message, "Could not start capture!");
-                }                
+                }
             }
         }
 
@@ -985,12 +1057,20 @@ namespace NetworkSniffer.ViewModel
             {
                 monitor.StopCapture();
                 monitor = null;
-                StatsHandler.Timer.Stop();
-                StatsHandler.StopWatch.Stop();
-                IsInterfaceChangeAllowed = true;
-                IsStartEnabled = true;
-                IsStopEnabled = false;
             }
+
+            if (monitorNpcap != null)
+            {
+                monitorNpcap.StopCap();
+                monitorNpcap = null;
+            }
+
+            StatsHandler.Timer.Stop();
+            StatsHandler.StopWatch.Stop();
+            IsInterfaceChangeAllowed = true;
+            IsStartEnabled = true;
+            IsStopEnabled = false;
+
             if (FilteredPacketList.Count == 0)
             {
                 StatsHandler.StopWatch.Reset();
@@ -1005,7 +1085,7 @@ namespace NetworkSniffer.ViewModel
             FilteredPacketList.Clear();
             StatsHandler.ResetStats();
 
-            if (monitor != null)
+            if (monitor != null || monitorNpcap != null)
             {
                 StatsHandler.StopWatch.Start();
             }
@@ -1036,7 +1116,7 @@ namespace NetworkSniffer.ViewModel
             ClearSelectedPacketData();
             IsFilterEnabled = false;
 
-            if(string.IsNullOrEmpty(filter))
+            if (string.IsNullOrEmpty(filter))
             {
                 IsResetEnabled = false;
             }

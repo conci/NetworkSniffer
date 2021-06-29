@@ -29,11 +29,11 @@ namespace NetworkSniffer.Model
             try
             {
                 MemoryStream memoryStream = new MemoryStream(byteBuffer, 0, length);
-                
+
                 BinaryReader binaryReader = new BinaryReader(memoryStream);
-                
+
                 Array.Copy(byteBuffer, byteIGMPHeader, IGMPHeaderSize);
-                
+
                 byteIGMPMessage = new byte[length - IGMPHeaderSize];
                 Array.Copy(byteBuffer, IGMPHeaderSize, byteIGMPMessage, 0, length - IGMPHeaderSize);
 

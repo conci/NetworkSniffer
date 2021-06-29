@@ -30,20 +30,32 @@ namespace NetworkSniffer.Model
             {
                 #region Buffer parsing
                 MemoryStream memoryStream = new MemoryStream(byteBuffer, 0, length);
-                
+
                 BinaryReader binaryReader = new BinaryReader(memoryStream);
 
                 // First eight bytes are IP version and header length
                 byte byteVersionAndHeaderLength = binaryReader.ReadByte();
 
-                // First four bits are version and second four bits are header length
-                // Shift 4 bits to the left to remove first 4 bits
-                byte byteHeaderLength = (byte)(byteVersionAndHeaderLength << 4);
-                // Shift back to the right
-                byteHeaderLength >>= 4;
-                // Multiply by 4 to get actual length in bytes
-                byteHeaderLength *= 4;
-                
+                // Shift 4 bits to the right to get version number
+                byte version = (byte)(byteVersionAndHeaderLength >> 4);
+                byte byteHeaderLength = 0;
+
+                //protocolo IPv6 o cabeçalho é fixo 40 bytes
+                if (version == 6)
+                {
+                    byteHeaderLength = 40;
+                }
+                else
+                {
+                    // First four bits are version and second four bits are header length
+                    // Shift 4 bits to the left to remove first 4 bits
+                    byteHeaderLength = (byte)(byteVersionAndHeaderLength << 4);
+                    // Shift back to the right
+                    byteHeaderLength >>= 4;
+                    // Multiply by 4 to get actual length in bytes
+                    byteHeaderLength *= 4;
+                }
+
                 // Copy header from byteBuffer to byteIPHeader
                 byteIPHeader = new byte[byteHeaderLength];
                 Array.Copy(byteBuffer, byteIPHeader, byteHeaderLength);
@@ -58,7 +70,7 @@ namespace NetworkSniffer.Model
                 UDPPacket = new List<UDPPacket>();
                 ICMPPacket = new List<ICMPPacket>();
                 IGMPPacket = new List<IGMPPacket>();
-                
+
                 PopulatePacketContents(byteHeaderLength);
 
                 ReceiveTime = DateTime.Now.ToString("HH:mm:ss");
@@ -161,17 +173,21 @@ namespace NetworkSniffer.Model
             {
                 ICMPPacket.Add(new ICMPPacket(byteIPMessage, byteIPMessage.Length));
             }
-            else if(IPHeader[0].TransportProtocol == 2)
+            else if (IPHeader[0].TransportProtocol == 2)
             {
                 IGMPPacket.Add(new IGMPPacket(byteIPMessage, byteIPMessage.Length));
             }
-            else if(IPHeader[0].TransportProtocol == 6)
+            else if (IPHeader[0].TransportProtocol == 6)
             {
                 TCPPacket.Add(new TCPPacket(byteIPMessage, byteIPMessage.Length));
             }
             else if (IPHeader[0].TransportProtocol == 17)
             {
                 UDPPacket.Add(new UDPPacket(byteIPMessage, byteIPMessage.Length));
+            }
+            else if (IPHeader[0].TransportProtocol == 58)
+            {
+                ICMPPacket.Add(new ICMPPacket(byteIPMessage, byteIPMessage.Length));
             }
         }
         #endregion

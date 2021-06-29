@@ -16,13 +16,13 @@
 
             if (ICMPNumber <= 40)
             {
-                if(ICMPNumber >= 20 && ICMPNumber <= 29)
+                if (ICMPNumber >= 20 && ICMPNumber <= 29)
                 {
                     ICMPTypeName = "Reserved (for Robustness Experiment)";
                 }
                 else
                 {
-                    switch(ICMPNumber)
+                    switch (ICMPNumber)
                     {
                         case 0:
                             ICMPTypeName = "Echo Reply";

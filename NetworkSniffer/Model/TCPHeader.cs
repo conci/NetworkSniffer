@@ -28,7 +28,7 @@ namespace NetworkSniffer.Model
 
             AcknowledgmentNumber = (uint)IPAddress.NetworkToHostOrder(binaryReader.ReadInt32());
 
-            ReservedAndFlags  = (ushort)IPAddress.NetworkToHostOrder(binaryReader.ReadInt16());
+            ReservedAndFlags = (ushort)IPAddress.NetworkToHostOrder(binaryReader.ReadInt16());
 
             DataOffset = (byte)(ReservedAndFlags >> 8);
             DataOffset >>= 1;
@@ -54,7 +54,7 @@ namespace NetworkSniffer.Model
         public byte DataOffset { get; set; }
 
         public ushort ReservedAndFlags { get; set; }
-        
+
         public string Flags
         {
             get
